@@ -1,2 +1,15 @@
-firmware/nesso/secrets.h
+# secrets
+.env
+firmware/nesso/src/secrets.h
+
+# PlatformIO
+firmware/nesso/.pio/
+firmware/nesso/.vscode/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
 .DS_Store
