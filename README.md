@@ -1,4 +1,5 @@
 # Nesso IoT Gateway
+
 ![ESP32-C6](https://img.shields.io/badge/ESP32--C6-firmware-blue) ![MQTT](https://img.shields.io/badge/protocol-MQTT-purple) ![PlatformIO](https://img.shields.io/badge/build-PlatformIO-orange)
 
 IoT project built around the **Arduino Nesso N1**, focused on embedded firmware, MQTT communication and device-to-server integration.
@@ -123,15 +124,15 @@ docker compose up -d
 
 ## Roadmap
 
-- [x] Nesso N1 firmware structure
-- [x] Wi-Fi connectivity
-- [x] EMQX MQTT broker
-- [x] MQTT telemetry
-- [x] Bidirectional MQTT communication
-- [x] Touchscreen status UI
-- [x] Battery monitoring
-- [x] PlatformIO migration
-- [ ] Python MQTT gateway
+- [X] Nesso N1 firmware structure
+- [X] Wi-Fi connectivity
+- [X] EMQX MQTT broker
+- [X] MQTT telemetry
+- [X] Bidirectional MQTT communication
+- [X] Touchscreen status UI
+- [X] Battery monitoring
+- [X] PlatformIO migration
+- [X] Python MQTT gateway
 - [ ] External IoT device integration
 - [ ] MQTT authentication and ACLs
 - [ ] TLS communication

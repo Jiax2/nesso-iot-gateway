@@ -21,10 +21,17 @@ DisplayManager displayManager;
 
 NessoBattery battery;
 
+
+constexpr unsigned long
+AIRFRYER_POLL_INTERVAL_MS =
+    5000;
+
+
 int batteryPercent = 0;
 
 unsigned long lastBatteryUpdate = 0;
 unsigned long lastTelemetryAt = 0;
+unsigned long lastAirFryerStateRequestAt = 0;
 
 bool mqttWasConnected = false;
 
@@ -38,6 +45,8 @@ void publishTelemetry();
 void handleMqttMessages();
 
 void handleSerialCommands();
+
+void handleDisplayActions();
 
 void processSerialCommand(
     const String& input
@@ -69,18 +78,36 @@ void sendAirFryerCommand(
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(
+        115200
+    );
 
-    delay(1000);
+    delay(
+        1000
+    );
 
-    serialInput.reserve(64);
+    serialInput.reserve(
+        64
+    );
 
     Serial.println();
-    Serial.println("==============================");
-    Serial.println("      Nesso IoT Client");
-    Serial.println("==============================");
 
-    Serial.print("Firmware: ");
+    Serial.println(
+        "=============================="
+    );
+
+    Serial.println(
+        "      Nesso IoT Client"
+    );
+
+    Serial.println(
+        "=============================="
+    );
+
+    Serial.print(
+        "Firmware: "
+    );
+
     Serial.println(
         Config::FIRMWARE_VERSION
     );
@@ -90,6 +117,7 @@ void setup()
 
     // battery
     battery.begin();
+
     battery.enableCharge();
 
     batteryPercent =
@@ -135,13 +163,28 @@ void loop()
     mqttWasConnected =
         mqttConnected;
 
+    // mqtt messages
+    handleMqttMessages();
+
+    // poll air fryer
+    if (
+        mqttConnected
+        &&
+        now - lastAirFryerStateRequestAt
+            >= AIRFRYER_POLL_INTERVAL_MS
+    )
+    {
+        requestAirFryerState();
+    }
+
     // battery
     if (
         now - lastBatteryUpdate
             >= 10000
     )
     {
-        lastBatteryUpdate = now;
+        lastBatteryUpdate =
+            now;
 
         batteryPercent =
             battery.getChargeLevel();
@@ -150,33 +193,127 @@ void loop()
     // display
     displayManager.update(
         wifiManager.connected(),
-        mqttService.connected(),
+        mqttConnected,
         wifiManager.localIP(),
         batteryPercent
     );
 
-    // mqtt messages
-    handleMqttMessages();
+    // display actions
+    handleDisplayActions();
 
-    // serial commands
+    // serial
     handleSerialCommands();
 
     // telemetry
     if (
         wifiManager.connected()
         &&
-        mqttService.connected()
+        mqttConnected
         &&
         now - lastTelemetryAt
             >= Config::TELEMETRY_INTERVAL_MS
     )
     {
-        lastTelemetryAt = now;
+        lastTelemetryAt =
+            now;
 
         publishTelemetry();
     }
 
-    delay(5);
+    delay(
+        5
+    );
+}
+
+
+void handleDisplayActions()
+{
+    AirFryerUiAction action =
+        displayManager.consumeAirFryerAction();
+
+    switch (action)
+    {
+        case AirFryerUiAction::Start:
+        {
+            int temperature =
+                displayManager.selectedTemperature();
+
+            int duration =
+                displayManager.selectedTime();
+
+            Serial.print(
+                "[Display] Start "
+            );
+
+            Serial.print(
+                temperature
+            );
+
+            Serial.print(
+                " C, "
+            );
+
+            Serial.print(
+                duration
+            );
+
+            Serial.println(
+                " min"
+            );
+
+            sendAirFryerStart(
+                temperature,
+                duration
+            );
+
+            break;
+        }
+
+        case AirFryerUiAction::Stop:
+        {
+            Serial.println(
+                "[Display] Stop"
+            );
+
+            sendAirFryerCommand(
+                "stop"
+            );
+
+            break;
+        }
+
+        case AirFryerUiAction::Pause:
+        {
+            Serial.println(
+                "[Display] Pause"
+            );
+
+            sendAirFryerCommand(
+                "pause"
+            );
+
+            break;
+        }
+
+        case AirFryerUiAction::Resume:
+        {
+            Serial.println(
+                "[Display] Resume"
+            );
+
+            sendAirFryerCommand(
+                "resume"
+            );
+
+            break;
+        }
+
+        case AirFryerUiAction::None:
+        default:
+        {
+            break;
+        }
+    }
 }
 
 
@@ -188,7 +325,9 @@ void requestAirFryerState()
 
     String requestId =
         "nesso-"
-        + String(airFryerRequestId);
+        + String(
+            airFryerRequestId
+        );
 
     doc["request_id"] =
         requestId;
@@ -217,6 +356,9 @@ void requestAirFryerState()
         )
     )
     {
+        lastAirFryerStateRequestAt =
+            millis();
+
         Serial.println(
             "[AirFryer] State requested"
         );
@@ -267,7 +409,9 @@ void sendAirFryerStart(
 
     String requestId =
         "nesso-"
-        + String(airFryerRequestId);
+        + String(
+            airFryerRequestId
+        );
 
     doc["request_id"] =
         requestId;
@@ -319,7 +463,9 @@ void sendAirFryerCommand(
 
     String requestId =
         "nesso-"
-        + String(airFryerRequestId);
+        + String(
+            airFryerRequestId
+        );
 
     doc["request_id"] =
         requestId;
@@ -391,7 +537,8 @@ void handleSerialCommands()
                 serialInput
             );
 
-            serialInput = "";
+            serialInput =
+                "";
 
             continue;
         }
@@ -478,27 +625,23 @@ void processSerialCommand(
     );
 
     Serial.println(
-        "[Serial] Commands:"
+        "state"
     );
 
     Serial.println(
-        "  state"
+        "start <temperature> <minutes>"
     );
 
     Serial.println(
-        "  start <temperature> <minutes>"
+        "stop"
     );
 
     Serial.println(
-        "  stop"
+        "pause"
     );
 
     Serial.println(
-        "  pause"
-    );
-
-    Serial.println(
-        "  resume"
+        "resume"
     );
 }
 
@@ -559,6 +702,13 @@ void handleMqttMessages()
         == Config::AIRFRYER_TOPIC_AVAILABILITY
     )
     {
+        bool online =
+            payload == "online";
+
+        displayManager.setAirFryerOnline(
+            online
+        );
+
         Serial.print(
             "[AirFryer] Availability: "
         );
@@ -707,6 +857,14 @@ void handleAirFryerState(
     int leftTime =
         doc["left_time_min"] | 0;
 
+    displayManager.setAirFryerState(
+        status,
+        fault,
+        temperature,
+        targetTime,
+        leftTime
+    );
+
     Serial.println(
         "[AirFryer] State"
     );
@@ -832,7 +990,8 @@ void handleAirFryerCommandResult(
         );
 
         Serial.println(
-            doc["error"].as<const char*>()
+            doc["error"]
+                .as<const char*>()
         );
     }
 }
