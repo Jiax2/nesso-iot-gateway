@@ -8,7 +8,7 @@ The Nesso communicates with an **EMQX MQTT broker**, while a Python gateway tran
 No Xiaomi Cloud connection is required during normal operation.
 
 <p align="center">
-  <img src="docs/demo.gif" width=“210” alt="Nesso IoT Gateway demo">
+  <img src="docs/demo.gif" height="180" alt="Nesso IoT Gateway demo">
 </p>
 
 ---
