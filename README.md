@@ -1,3 +1,4 @@
+
 # Nesso IoT Gateway
 
 IoT project built around the **Arduino Nesso N1**, combining embedded firmware, MQTT communication and local control of a Xiaomi Air Fryer.
@@ -6,7 +7,9 @@ The Nesso communicates with an **EMQX MQTT broker**, while a Python gateway tran
 
 No Xiaomi Cloud connection is required during normal operation.
 
-![Nesso IoT Gateway demo](docs/demo.gif)
+<p align="center">
+  <img src="docs/demo.gif" width=“210” alt="Nesso IoT Gateway demo">
+</p>
 
 ---
 
@@ -136,7 +139,7 @@ From the main screen the user can:
 - Stop cooking
 - View the remaining time
 
-Large touch areas are used for temperature and time selection, while the Nesso physical buttons can also be used for reliable interaction.
+Large touch areas are used for temperature and time selection, while the Nesso physical buttons can also be used for more reliable interaction.
 
 While the air fryer is running, an animated cat is displayed together with the current temperature and remaining cooking time.
 
@@ -169,6 +172,7 @@ nesso-iot-gateway/
 │
 ├── infrastructure/
 ├── docs/
+│   └── demo.gif
 ├── scripts/
 ├── compose.yaml
 └── README.md
@@ -312,3 +316,11 @@ Display
 - EMQX
 - Docker
 - Docker Compose
+
+---
+
+## Project Status
+
+**Completed**
+
+The final implementation provides local bidirectional control between the Arduino Nesso N1 and a Xiaomi Air Fryer through MQTT and a Python gateway.
