@@ -3,9 +3,9 @@
 
 
 MqttService::MqttService()
-  : _mqttClient(_networkClient),
-    _lastReconnectAttempt(0),
-    _messageAvailable(false)
+    : _mqttClient(_networkClient),
+      _lastReconnectAttempt(0),
+      _messageAvailable(false)
 {
 }
 
@@ -37,7 +37,6 @@ void MqttService::loop(
         return;
     }
 
-
     if (_mqttClient.connected())
     {
         handleIncomingMessage();
@@ -45,9 +44,7 @@ void MqttService::loop(
         return;
     }
 
-
     unsigned long now = millis();
-
 
     if (
         _lastReconnectAttempt == 0
@@ -70,7 +67,6 @@ void MqttService::connect()
     Serial.print(":");
     Serial.println(Config::MQTT_PORT);
 
-
     if (
         !_mqttClient.connect(
             Config::MQTT_BROKER,
@@ -89,9 +85,7 @@ void MqttService::connect()
         return;
     }
 
-
     Serial.println("[MQTT] Connected");
-
 
     publish(
         Config::TOPIC_AVAILABILITY,
@@ -100,8 +94,7 @@ void MqttService::connect()
         1
     );
 
-
-    // subscribe commands
+    // Nesso commands
     if (
         _mqttClient.subscribe(
             Config::TOPIC_COMMAND,
@@ -123,6 +116,75 @@ void MqttService::connect()
             "[MQTT] Subscribe failed"
         );
     }
+
+    // Air fryer state
+    if (
+        _mqttClient.subscribe(
+            Config::AIRFRYER_TOPIC_STATE,
+            1
+        )
+    )
+    {
+        Serial.print(
+            "[MQTT] Subscribed to "
+        );
+
+        Serial.println(
+            Config::AIRFRYER_TOPIC_STATE
+        );
+    }
+    else
+    {
+        Serial.println(
+            "[MQTT] Air fryer state subscribe failed"
+        );
+    }
+
+    // Air fryer result
+    if (
+        _mqttClient.subscribe(
+            Config::AIRFRYER_TOPIC_COMMAND_RESULT,
+            1
+        )
+    )
+    {
+        Serial.print(
+            "[MQTT] Subscribed to "
+        );
+
+        Serial.println(
+            Config::AIRFRYER_TOPIC_COMMAND_RESULT
+        );
+    }
+    else
+    {
+        Serial.println(
+            "[MQTT] Air fryer result subscribe failed"
+        );
+    }
+
+    // Air fryer availability
+    if (
+        _mqttClient.subscribe(
+            Config::AIRFRYER_TOPIC_AVAILABILITY,
+            1
+        )
+    )
+    {
+        Serial.print(
+            "[MQTT] Subscribed to "
+        );
+
+        Serial.println(
+            Config::AIRFRYER_TOPIC_AVAILABILITY
+        );
+    }
+    else
+    {
+        Serial.println(
+            "[MQTT] Air fryer availability subscribe failed"
+        );
+    }
 }
 
 
@@ -131,18 +193,15 @@ void MqttService::handleIncomingMessage()
     int messageSize =
         _mqttClient.parseMessage();
 
-
     if (!messageSize)
     {
         return;
     }
 
-
     _messageTopic =
         _mqttClient.messageTopic();
 
     _messagePayload = "";
-
 
     while (_mqttClient.available())
     {
@@ -150,9 +209,7 @@ void MqttService::handleIncomingMessage()
             (char)_mqttClient.read();
     }
 
-
     _messageAvailable = true;
-
 
     Serial.print(
         "[MQTT] Message received: "
@@ -161,7 +218,6 @@ void MqttService::handleIncomingMessage()
     Serial.println(
         _messageTopic
     );
-
 
     Serial.print(
         "[MQTT] Payload: "
@@ -183,16 +239,13 @@ bool MqttService::readMessage(
         return false;
     }
 
-
     topic =
         _messageTopic;
 
     payload =
         _messagePayload;
 
-
     _messageAvailable = false;
-
 
     return true;
 }
@@ -224,6 +277,19 @@ bool MqttService::publishCommandResult(
 }
 
 
+bool MqttService::publishAirFryerCommand(
+    const String& payload
+)
+{
+    return publish(
+        Config::AIRFRYER_TOPIC_COMMAND,
+        payload,
+        false,
+        1
+    );
+}
+
+
 bool MqttService::publish(
     const char* topic,
     const String& payload,
@@ -236,7 +302,6 @@ bool MqttService::publish(
         return false;
     }
 
-
     bool success =
         _mqttClient.beginMessage(
             topic,
@@ -245,15 +310,12 @@ bool MqttService::publish(
             qos
         );
 
-
     if (!success)
     {
         return false;
     }
 
-
     _mqttClient.print(payload);
-
 
     return _mqttClient.endMessage();
 }

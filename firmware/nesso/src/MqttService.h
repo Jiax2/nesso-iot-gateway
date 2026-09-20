@@ -4,10 +4,10 @@
 #include <WiFi.h>
 #include <ArduinoMqttClient.h>
 
+
 class MqttService
 {
 public:
-
     MqttService();
 
     void begin();
@@ -18,6 +18,11 @@ public:
 
     bool connected();
 
+    bool readMessage(
+        String& topic,
+        String& payload
+    );
+
     bool publishTelemetry(
         const String& payload
     );
@@ -26,14 +31,11 @@ public:
         const String& payload
     );
 
-    bool readMessage(
-        String& topic,
-        String& payload
+    bool publishAirFryerCommand(
+        const String& payload
     );
 
-
 private:
-
     WiFiClient _networkClient;
 
     MqttClient _mqttClient;
